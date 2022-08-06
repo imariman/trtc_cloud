@@ -1,9 +1,9 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:universal_io/io.dart';
 import 'trtc_cloud_def.dart';
 
 /// @nodoc
@@ -36,27 +36,17 @@ class TRTCCloudVideoView extends StatefulWidget {
   final CustomRender? textureParam;
   final Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers;
   final PlatformViewHitTestBehavior? hitTestBehavior;
-  const TRTCCloudVideoView(
-      {Key? key,
-      this.viewType,
-      this.viewMode,
-      this.textureParam,
-      this.onViewCreated,
-      this.hitTestBehavior,
-      this.gestureRecognizers})
-      : super(key: key);
+  const TRTCCloudVideoView({Key? key, this.viewType, this.viewMode, this.textureParam, this.onViewCreated, this.hitTestBehavior, this.gestureRecognizers}) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() =>
-      TRTCCloudVideoViewState(this.viewType, this.viewMode, this.textureParam);
+  State<StatefulWidget> createState() => TRTCCloudVideoViewState(this.viewType, this.viewMode, this.textureParam);
 }
 
 //// @nodoc
 class TRTCCloudVideoViewState extends State<TRTCCloudVideoView> {
   int? _textureId;
   CustomRender? _textureParam;
-  TRTCCloudVideoViewState(
-      String? viewType, String? mode, CustomRender? textureParam) {
+  TRTCCloudVideoViewState(String? viewType, String? mode, CustomRender? textureParam) {
     _textureParam = textureParam;
     if (viewType != null) {
       channelType = viewType;
@@ -64,9 +54,7 @@ class TRTCCloudVideoViewState extends State<TRTCCloudVideoView> {
     if (mode != null) {
       viewMode = mode;
     }
-    if (kIsWeb ||
-        (Platform.isIOS &&
-            viewType == TRTCCloudDef.TRTC_VideoView_SurfaceView)) {
+    if (kIsWeb || (Platform.isIOS && viewType == TRTCCloudDef.TRTC_VideoView_SurfaceView)) {
       // iOS not support TRTC_VideoView_SurfaceView
       channelType = TRTCCloudDef.TRTC_VideoView_TextureView;
     }
@@ -80,22 +68,12 @@ class TRTCCloudVideoViewState extends State<TRTCCloudVideoView> {
   void didUpdateWidget(TRTCCloudVideoView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.textureParam != null && Platform.isAndroid) {
-      if (widget.textureParam!.width != oldWidget.textureParam!.width ||
-          widget.textureParam!.height != oldWidget.textureParam!.height) {
+      if (widget.textureParam!.width != oldWidget.textureParam!.width || widget.textureParam!.height != oldWidget.textureParam!.height) {
         if (widget.textureParam!.isLocal) {
           ////Update the width and height when the width and height change. In order to ensure no deformation, there may be black edges. If you don't want black edges, you can call `setVideoEncoderParam` to set the resolution close to the width and height
-          MethodChannel('trtcCloudChannel').invokeMethod(
-              'updateLocalVideoRender', {
-            "width": widget.textureParam!.width,
-            "height": widget.textureParam!.height
-          });
+          MethodChannel('trtcCloudChannel').invokeMethod('updateLocalVideoRender', {"width": widget.textureParam!.width, "height": widget.textureParam!.height});
         } else {
-          MethodChannel('trtcCloudChannel')
-              .invokeMethod('updateRemoteVideoRender', {
-            "textureID": _textureId,
-            "width": widget.textureParam!.width,
-            "height": widget.textureParam!.height
-          });
+          MethodChannel('trtcCloudChannel').invokeMethod('updateRemoteVideoRender', {"textureID": _textureId, "width": widget.textureParam!.width, "height": widget.textureParam!.height});
         }
       }
     }
@@ -104,34 +82,30 @@ class TRTCCloudVideoViewState extends State<TRTCCloudVideoView> {
   @override
   void initState() {
     super.initState();
-    if (channelType == TRTCCloudDef.TRTC_VideoView_Texture &&
-        _textureParam != null) {
+    if (channelType == TRTCCloudDef.TRTC_VideoView_Texture && _textureParam != null) {
       if (_textureParam!.isLocal) {
-        MethodChannel('trtcCloudChannel')
-            .invokeMethod('setLocalVideoRenderListener', {
+        MethodChannel('trtcCloudChannel').invokeMethod('setLocalVideoRenderListener', {
           "userId": _textureParam!.userId,
-          "isFront":
-              _textureParam!.isFront == null ? true : _textureParam!.isFront,
+          "isFront": _textureParam!.isFront == null ? true : _textureParam!.isFront,
           "streamType": _textureParam!.streamType,
           "width": _textureParam!.width,
           "height": _textureParam!.height
         }).then((value) => {
-                  setState(() {
-                    _textureId = value;
-                  })
-                });
+              setState(() {
+                _textureId = value;
+              })
+            });
       } else {
-        MethodChannel('trtcCloudChannel')
-            .invokeMethod('setRemoteVideoRenderListener', {
+        MethodChannel('trtcCloudChannel').invokeMethod('setRemoteVideoRenderListener', {
           "userId": _textureParam!.userId,
           "streamType": _textureParam!.streamType,
           "width": _textureParam!.width,
           "height": _textureParam!.height
         }).then((value) => {
-                  setState(() {
-                    _textureId = value;
-                  })
-                });
+              setState(() {
+                _textureId = value;
+              })
+            });
       }
       return;
     }
@@ -140,10 +114,8 @@ class TRTCCloudVideoViewState extends State<TRTCCloudVideoView> {
   @override
   void dispose() {
     super.dispose();
-    if (channelType == TRTCCloudDef.TRTC_VideoView_Texture &&
-        _textureId != null) {
-      MethodChannel('trtcCloudChannel')
-          .invokeMethod('unregisterTexture', {"textureID": _textureId});
+    if (channelType == TRTCCloudDef.TRTC_VideoView_Texture && _textureId != null) {
+      MethodChannel('trtcCloudChannel').invokeMethod('unregisterTexture', {"textureID": _textureId});
     }
   }
 
@@ -158,19 +130,15 @@ class TRTCCloudVideoViewState extends State<TRTCCloudVideoView> {
     if (kIsWeb) {
       return PlatformViewLink(
         viewType: channelType,
-        surfaceFactory:
-            (BuildContext context, PlatformViewController controller) {
+        surfaceFactory: (BuildContext context, PlatformViewController controller) {
           return PlatformViewSurface(
             controller: controller,
             hitTestBehavior: PlatformViewHitTestBehavior.transparent,
-            gestureRecognizers: widget.gestureRecognizers != null
-                ? widget.gestureRecognizers!
-                : const <Factory<OneSequenceGestureRecognizer>>{},
+            gestureRecognizers: widget.gestureRecognizers != null ? widget.gestureRecognizers! : const <Factory<OneSequenceGestureRecognizer>>{},
           );
         },
         onCreatePlatformView: (PlatformViewCreationParams params) {
-          final controller =
-              _HtmlElementViewController(params.id, params.viewType);
+          final controller = _HtmlElementViewController(params.id, params.viewType);
           controller._initialize().then((_) {
             params.onPlatformViewCreated(params.id);
             _onPlatformViewCreated(params.id);
@@ -189,14 +157,11 @@ class TRTCCloudVideoViewState extends State<TRTCCloudVideoView> {
       } else {
         return PlatformViewLink(
           viewType: channelType,
-          surfaceFactory:
-              (BuildContext context, PlatformViewController controller) {
+          surfaceFactory: (BuildContext context, PlatformViewController controller) {
             return PlatformViewSurface(
               controller: controller as AndroidViewController,
               hitTestBehavior: PlatformViewHitTestBehavior.transparent,
-              gestureRecognizers: widget.gestureRecognizers != null
-                  ? widget.gestureRecognizers!
-                  : const <Factory<OneSequenceGestureRecognizer>>{},
+              gestureRecognizers: widget.gestureRecognizers != null ? widget.gestureRecognizers! : const <Factory<OneSequenceGestureRecognizer>>{},
             );
           },
           onCreatePlatformView: (PlatformViewCreationParams params) {
@@ -236,8 +201,7 @@ class TRTCCloudVideoViewState extends State<TRTCCloudVideoView> {
   }
 }
 
-class _HtmlElementViewController extends PlatformViewController
-    with WidgetsBindingObserver {
+class _HtmlElementViewController extends PlatformViewController with WidgetsBindingObserver {
   _HtmlElementViewController(
     this.viewId,
     this.viewType,
@@ -284,8 +248,7 @@ class _HtmlElementViewController extends PlatformViewController
 
 /// @nodoc
 class TRTCCloudVideoViewController {
-  TRTCCloudVideoViewController(int id)
-      : _channel = new MethodChannel(channelType + '_$id');
+  TRTCCloudVideoViewController(int id) : _channel = new MethodChannel(channelType + '_$id');
 
   final MethodChannel _channel;
 
@@ -345,7 +308,6 @@ class TRTCCloudVideoViewController {
   ///
   ///* Substream (screen sharing): TRTCCloudDe.TRTC_VIDEO_STREAM_TYPE_SUB
   Future<void> startRemoteView(String userId, int streamType) {
-    return _channel.invokeMethod(
-        'startRemoteView', {"userId": userId, "streamType": streamType});
+    return _channel.invokeMethod('startRemoteView', {"userId": userId, "streamType": streamType});
   }
 }
